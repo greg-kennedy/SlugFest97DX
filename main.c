@@ -36,7 +36,6 @@ Mix_Chunk *sfx_win[2] = {NULL};
 Mix_Chunk *sfx_hit[5] = {NULL};
 
 SDL_CD *cdrom = NULL;
-short unsigned int use_cd;
 unsigned char cd_mode;
 
 // What gamestate we are in, changing this flips screens
@@ -50,7 +49,6 @@ unsigned char p_choice[2];
 
 SDL_Surface *sprite[NUM_CHARS][NUM_SPRITES] = {{NULL}};
 
-short unsigned int fullscreen;
 int gamekeys[14];
 
 // Loads an image, in displayformat fmt, from a filename.
@@ -413,7 +411,6 @@ void free_data()
 int main ( int argc, char** argv )
 {
     SDL_Surface* screen = NULL;
-    FILE *inifile;
 
     // audio params
     int frequency;
@@ -440,49 +437,39 @@ int main ( int argc, char** argv )
 	
     // Read from INI file.  We do this _before_ opening the mixer or
     //  opening the screen object.
-	inifile = fopen("config.ini","r");
-	if (inifile == NULL)
-	{
-		vol_sfx=MIX_MAX_VOLUME;
-		vol_music=MIX_MAX_VOLUME;
-		fullscreen=1;
-		frequency=MIX_DEFAULT_FREQUENCY;
-		format=MIX_DEFAULT_FORMAT;
-		channels=MIX_DEFAULT_CHANNELS;
-		chunksize=MIX_DEFAULT_CHUNKSIZE;
-		use_cd=1;
-		gamekeys[0]=SDLK_w;
-		gamekeys[1]=SDLK_s;
-		gamekeys[2]=SDLK_a;
-		gamekeys[3]=SDLK_d;
-		gamekeys[4]=SDLK_e;
-		gamekeys[5]=SDLK_q;
-		gamekeys[6]=SDLK_c;
-		gamekeys[7]=SDLK_i;
-		gamekeys[8]=SDLK_k;
-		gamekeys[9]=SDLK_j;
-		gamekeys[10]=SDLK_l;
-		gamekeys[11]=SDLK_u;
-		gamekeys[12]=SDLK_o;
-		gamekeys[13]=SDLK_m;
-	} else {
-		if (fscanf(inifile,"vol_sfx=%d\nvol_music=%d\nfullscreen=%hu\nmix_frequency=%d\nmix_format=%hu\nmix_channels=%d\nmix_chunksize=%d\nuse_cd=%hu\n"
-             "key_p1_jump=%d\nkey_p1_duck=%d\nkey_p1_left=%d\nkey_p1_right=%d\nkey_p1_punch=%d\nkey_p1_kick=%d\nkey_p1_special=%d\n"
-             "key_p2_jump=%d\nkey_p2_duck=%d\nkey_p2_left=%d\nkey_p2_right=%d\nkey_p2_punch=%d\nkey_p2_kick=%d\nkey_p2_special=%d\n"
-             ,&vol_sfx,&vol_music,&fullscreen,&frequency,&format,&channels,&chunksize,&use_cd,
-             &gamekeys[0],&gamekeys[1],&gamekeys[2],&gamekeys[3],&gamekeys[4],&gamekeys[5],&gamekeys[6],
-             &gamekeys[7],&gamekeys[8],&gamekeys[9],&gamekeys[10],&gamekeys[11],&gamekeys[12],&gamekeys[13]
-             ) != 22)
-		{
-			vol_sfx=MIX_MAX_VOLUME;
-			vol_music=MIX_MAX_VOLUME;
-			fullscreen=1;
-            frequency=MIX_DEFAULT_FREQUENCY;
-            format=MIX_DEFAULT_FORMAT;
-            channels=MIX_DEFAULT_CHANNELS;
-            chunksize=MIX_DEFAULT_CHUNKSIZE;
-            use_cd=1;
-            gamekeys[0]=SDLK_w;
+	/* Pointer to a cfg_struct structure */
+	struct cfg_struct *cfg;
+	/* Initialize config struct */
+	cfg = cfg_init();
+
+	/* Set default values */
+	cfg_set(cfg,"use_cd","1");
+	cfg_set(cfg,"fullscreen","1");
+	cfg_set(cfg,"vol_sfx",MIX_MAX_VOLUME);
+	cfg_set(cfg,"vol_music",MIX_MAX_VOLUME);
+	cfg_set(cfg,"mix_frequency","MIX_DEFAULT_FREQUENCY");
+	cfg_set(cfg,"mix_format","MIX_DEFAULT_FORMAT");
+	cfg_set(cfg,"mix_channels","MIX_DEFAULT_CHANNELS");
+	cfg_set(cfg,"mix_chunksize","MIX_DEFAULT_CHUNKSIZE");
+	cfg_set(cfg,"key_p1_jump",SDLK_w);
+	cfg_set(cfg,"key_p1_duck",SDLK_s);
+	cfg_set(cfg,"key_p1_left",SDLK_a);
+	cfg_set(cfg,"key_p1_right",SDLK_d);
+	cfg_set(cfg,"key_p1_punch",SDLK_e);
+	cfg_set(cfg,"key_p1_kick",SDLK_q);
+	cfg_set(cfg,"key_p1_special",SDLK_c);
+	cfg_set(cfg,"key_p2_jump",SDLK_i);
+	cfg_set(cfg,"key_p2_duck",SDLK_k);
+	cfg_set(cfg,"key_p2_left",SDLK_j);
+	cfg_set(cfg,"key_p2_right",SDLK_l);
+	cfg_set(cfg,"key_p2_punch",SDLK_u);
+	cfg_set(cfg,"key_p2_kick",SDLK_o);
+	cfg_set(cfg,"key_p2_special",SDLK_m);
+
+	/* Attempt to read saved values from config file */
+	cfg_load(cfg,"config.ini");
+
+        /*    gamekeys[0]=SDLK_w;
             gamekeys[1]=SDLK_s;
             gamekeys[2]=SDLK_a;
             gamekeys[3]=SDLK_d;
@@ -495,13 +482,10 @@ int main ( int argc, char** argv )
             gamekeys[10]=SDLK_l;
             gamekeys[11]=SDLK_u;
             gamekeys[12]=SDLK_o;
-            gamekeys[13]=SDLK_m;
-		}
-		fclose(inifile);
-	}
+            gamekeys[13]=SDLK_m; */
 
     // initialize SDL video
-    if ( SDL_Init( SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | (use_cd ? SDL_INIT_CDROM : 0) ) < 0 )
+    if ( SDL_Init( SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | (atoi(cfg_get(cfg,"use_cd")) ? SDL_INIT_CDROM : 0) ) < 0 )
     {
         printf( "Unable to init SDL: %s\n", SDL_GetError() );
         return 1;
@@ -530,7 +514,7 @@ int main ( int argc, char** argv )
     {
         cdrom = SDL_CDOpen(0);      // open it
         if ( cdrom == NULL ) {      // if it's null then turn off CD audio
-            use_cd = 0;
+            cfg_set(cfg,"use_cd","0");
         } else {
             if ( CD_INDRIVE(SDL_CDStatus(cdrom)) ) {    // check if CD inserted
                 if (cdrom->numtracks == 1 + SNG_FIGHT + NUM_FIGHTSONGS)
@@ -544,7 +528,7 @@ int main ( int argc, char** argv )
         }
     } else {    // No optical drives, turn off CD audio.
         cdrom = NULL;
-        use_cd = 0;
+        cfg_set(cfg,"use_cd","0");
     }
 
     // Initialize helper libraries
@@ -619,17 +603,8 @@ int main ( int argc, char** argv )
     free_data();
 
     // write config options back out
-	inifile = fopen("config.ini","w");
-	if (inifile != NULL) {
-		fprintf(inifile,"vol_sfx=%d\nvol_music=%d\nfullscreen=%hu\nmix_frequency=%d\nmix_format=%hu\nmix_channels=%d\nmix_chunksize=%d\nuse_cd=%hu\n"
-             "key_p1_jump=%d\nkey_p1_duck=%d\nkey_p1_left=%d\nkey_p1_right=%d\nkey_p1_punch=%d\nkey_p1_kick=%d\nkey_p1_special=%d\n"
-             "key_p2_jump=%d\nkey_p2_duck=%d\nkey_p2_left=%d\nkey_p2_right=%d\nkey_p2_punch=%d\nkey_p2_kick=%d\nkey_p2_special=%d\n",
-            vol_sfx,vol_music,fullscreen,frequency,format,channels,chunksize,use_cd,
-            gamekeys[0],gamekeys[1],gamekeys[2],gamekeys[3],gamekeys[4],gamekeys[5],gamekeys[6],
-            gamekeys[7],gamekeys[8],gamekeys[9],gamekeys[10],gamekeys[11],gamekeys[12],gamekeys[13]
-        );
-		fclose(inifile);
-	}
+	cfg_save(cfg,"config.ini");
+	cfg_free(cfg);
 
     // turn on the cursor
 	SDL_ShowCursor( SDL_ENABLE );

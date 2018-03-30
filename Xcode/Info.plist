@@ -28,8 +28,6 @@
 	<dict>
 		<key>i386</key>
 		<string>10.4.0</string>
-		<key>ppc</key>
-		<string>10.4.0</string>
 	</dict>
 </dict>
 </plist>
