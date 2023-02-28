@@ -6,7 +6,7 @@ extern SDL_Surface *options;
 extern int gamestate;
 extern int vol_music, vol_sfx;
 
-extern short int use_cd;
+extern short unsigned int use_cd;
 extern char cd_mode;
 extern SDL_CD *cdrom;
 

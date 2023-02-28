@@ -37,7 +37,7 @@ Mix_Chunk *sfx_hit[5] = {NULL};
 
 SDL_CD *cdrom = NULL;
 short unsigned int use_cd;
-unsigned char cd_mode;
+char cd_mode;
 
 // What gamestate we are in, changing this flips screens
 int gamestate;
@@ -576,7 +576,7 @@ int main ( int argc, char** argv )
 	load_data();
 
     // seed RNG
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
 
     // get initial sane values for mx / my
     SDL_GetMouseState(&mx, &my);
