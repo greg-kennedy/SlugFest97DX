@@ -59,6 +59,7 @@ Debug/
 Release/
 
 # Project-specific
+*.orig
 stdout.txt
 stderr.txt
 config.ini
